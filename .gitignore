@@ -1,0 +1,5 @@
+# Build output
+bin/
+obj/
+# The game's own DLLs (Klei's code): copy them in to build, never commit them
+lib/
