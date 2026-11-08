@@ -22,7 +22,7 @@ Known limits: rocket modules are placed a different way and are not covered; pil
 
 ## Tested
 
-Every release is play-tested by an automated run in the real game (Spaced Out, on several real colonies) covering: an ordinary build and its exact cost, refusal when the asteroid cannot pay, orders over rock left to duplicants, tile swaps, wires through built tiles, dragged pipe and wire lines, building while paused, stock on another asteroid not paying, nothing left reserved afterwards, achievements still enabled, and, with the mod switched off, orders staying normal jobs.
+Every release is play-tested by an automated run in the real game, on several real Spaced Out colonies and on the base game, covering: an ordinary build and its exact cost, refusal when the asteroid cannot pay, orders over rock left to duplicants, tile swaps, wires through built tiles, dragged pipe and wire lines, building while paused, stock on another asteroid not paying, nothing left reserved afterwards, achievements still enabled, and, with the mod switched off, orders staying normal jobs.
 
 ## Licence
 

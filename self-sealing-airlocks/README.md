@@ -26,7 +26,7 @@ Turn off any other self-sealing airlock mod first, or two copies will patch the 
 
 ## Tested
 
-Every release is play-tested by an automated run in the real game (Spaced Out, on several real colonies): doors stay sealed on Auto and Locked while a duplicant passes, open on Open (including with a duplicant in the doorway), seal again when set back to Auto, the Insulated Door keeps its insulation, the Pneumatic Door is unchanged, deconstruction frees the cells, and a duplicant changes a door's mode without error. The same checks run with the mod switched off show the game's own leaky doors, proving they can tell the difference.
+Every release is play-tested by an automated run in the real game, on several real Spaced Out colonies and on the base game: doors stay sealed on Auto and Locked while a duplicant passes, open on Open (including with a duplicant in the doorway), seal again when set back to Auto, the Insulated Door keeps its insulation, the Pneumatic Door is unchanged, deconstruction frees the cells, and a duplicant changes a door's mode without error (proven in Spaced Out; in the small base-game test colony no duplicant took that job in the time given). The same checks run with the mod switched off show the game's own leaky doors, proving they can tell the difference.
 
 ## Credits
 
