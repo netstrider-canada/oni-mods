@@ -1,0 +1,32 @@
+name: CodeQL
+
+# Security and quality scan of the mods' C# source. The mods cannot be built here (they compile
+# against the game's own assemblies, which are Klei's and are not in this repository), so CodeQL
+# reads the source without a build.
+on:
+  push:
+    branches: [main]
+    tags: ['*/v*']
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (csharp)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: none
+          queries: security-and-quality
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:csharp
