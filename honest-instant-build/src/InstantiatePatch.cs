@@ -37,7 +37,11 @@ namespace HonestInstantBuild
             public int Cell;
             public IList<Tag> Elements;
             public bool Affordable;
+            public int Waits;
         }
+
+        /// <summary>Frames to wait for an order's own OnSpawn before leaving it to duplicants.</summary>
+        private const int MaxSpawnWaits = 120;
 
         /// <summary>
         /// Runs after the game created the under-construction object.
@@ -128,6 +132,23 @@ namespace HonestInstantBuild
                 var constructable = p.Order.GetComponent<Constructable>();
                 if (constructable == null) return;
 
+                // Wait for the order's own OnSpawn. A fast drag places several orders in one
+                // frame, and this callback can then run before an order has spawned. Finishing it
+                // early let that late OnSpawn draw a tile swap's blueprint ghost after the swap was
+                // done, and nothing ever erased it (found in play-testing, 2026-11-11); refusing it
+                // early sends a Cancel nobody is subscribed to yet, since OnSpawn subscribes it.
+                if (!constructable.isSpawned)
+                {
+                    if (++p.Waits > MaxSpawnWaits)
+                    {
+                        Debug.LogWarning($"{Mod.LogPrefix} {p.Def.PrefabID} at cell {p.Cell}: never spawned, left as a normal order.");
+                        return;
+                    }
+                    UIScheduler.Instance.Schedule("HonestInstantBuild", 0f, Act, p);
+                    return;
+                }
+                if (p.Waits > 0) Debug.Log($"{Mod.LogPrefix} {p.Def.PrefabID} at cell {p.Cell}: waited {p.Waits} frame(s) for the order to spawn.");
+
                 if (!p.Affordable)
                 {
                     // Decision 2B: refuse. The game already showed its "No materials" pop-up at
@@ -160,10 +181,75 @@ namespace HonestInstantBuild
                 // the deduction. A null worker is what the game itself passes for sandbox uproots.
                 constructable.CompleteWork(null);
                 Debug.Log($"{Mod.LogPrefix} built {p.Def.PrefabID} at cell {p.Cell} using {report}.");
+                if (p.Def.IsTilePiece && p.Def.isKAnimTile && p.Def.BlockTileAtlas != null)
+                    UIScheduler.Instance.Schedule("HonestInstantBuild", 0.1f, SweepGhost,
+                        new Sweep { Def = p.Def, Cell = p.Cell, Order = p.Order, Until = Time.realtimeSinceStartup + 60f });
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"{Mod.LogPrefix} finishing {p.Def?.PrefabID} at cell {p.Cell} failed, leaving the order to duplicants: {ex}");
+            }
+        }
+
+        /// <summary>More layers of cursor preview than a drag can stack on one cell.</summary>
+        private const int MaxGhostLayers = 256;
+
+        /// <summary>The build tool's private record of the cell its cursor preview was last drawn on.</summary>
+        private static readonly AccessTools.FieldRef<BuildTool, int> ToolLastCell =
+            AccessTools.FieldRefAccess<BuildTool, int>("lastCell");
+
+        /// <summary>A finished tile whose cell may still carry a stale blueprint picture.</summary>
+        private sealed class Sweep
+        {
+            public BuildingDef Def;
+            public int Cell;
+            public GameObject Order; // the order just finished: it holds the cell until the game's finish lands
+            public float Until;
+        }
+
+        /// <summary>
+        /// Erase a blueprint picture the build tool's cursor preview left on a tile this mod finished.
+        /// The tool draws a preview under the cursor and erases it as the cursor leaves, but skips the
+        /// erase while a swap order holds the cell; with the game running, a swap the mod finishes can
+        /// land in that window, and the picture then stays until a reload (a play-tester's drag, 2026-11-11;
+        /// reproduced by the self-test's hib-16). Waits until the swap has fully finished and the cursor
+        /// is off the cell, then removes this building's under-construction and swap pictures there.
+        /// Only pictures are touched: a built tile is drawn under a different key.
+        /// </summary>
+        private static void SweepGhost(object data)
+        {
+            var s = (Sweep)data;
+            try
+            {
+                if (!Grid.IsValidCell(s.Cell)) return;
+                GameObject swap = s.Def.ReplacementLayer != ObjectLayer.NumLayers ? Grid.Objects[s.Cell, (int)s.Def.ReplacementLayer] : null;
+                GameObject tile = Grid.Objects[s.Cell, (int)s.Def.TileLayer];
+                bool ours = (swap != null && swap == s.Order) || (tile != null && tile == s.Order);
+                bool otherOrder = !ours && ((swap != null && swap.GetComponent<Constructable>() != null)
+                                     || (tile != null && tile.GetComponent<Constructable>() != null));
+                // A new order placed on the cell owns its own picture; never erase that one.
+                if (otherOrder) return;
+                BuildTool tool = BuildTool.Instance;
+                bool cursorHere = tool != null && PlayerController.Instance != null
+                                  && PlayerController.Instance.ActiveTool == tool && ToolLastCell(tool) == s.Cell;
+                if (ours || cursorHere)
+                {
+                    if (Time.realtimeSinceStartup < s.Until)
+                        UIScheduler.Instance.Schedule("HonestInstantBuild", 0.1f, SweepGhost, s);
+                    return;
+                }
+                // The tool adds one layer per frame its preview is redrawn on the cell, so a slow drag
+                // on a busy colony stacked five or six (self-test on Spacejunk, 2026-11-12). Removing
+                // past the last layer is a no-op, so take off far more than any drag can stack.
+                for (int i = 0; i < MaxGhostLayers; i++)
+                {
+                    global::World.Instance.blockTileRenderer.RemoveBlock(s.Def, true, SimHashes.Void, s.Cell);
+                    global::World.Instance.blockTileRenderer.RemoveBlock(s.Def, false, SimHashes.Void, s.Cell);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"{Mod.LogPrefix} clearing the blueprint picture at cell {s.Cell} failed: {ex}");
             }
         }
     }

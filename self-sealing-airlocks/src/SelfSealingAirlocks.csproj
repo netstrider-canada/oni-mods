@@ -11,6 +11,11 @@
   -->
 
   <PropertyGroup>
+    <!-- Same source, same bytes: the release gate records each DLL's SHA-1 and the installer
+         refuses any other, so the build must not stamp the git commit in (a docs commit after
+         the gate changed the DLL, 2026-11-12). -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Deterministic>true</Deterministic>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <AssemblyName>SelfSealingAirlocks</AssemblyName>
