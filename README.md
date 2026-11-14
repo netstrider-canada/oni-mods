@@ -1,12 +1,16 @@
 # Oxygen Not Included mods
 
-Three mods for [Oxygen Not Included](https://store.steampowered.com/app/457140/):
+Three mods for [Oxygen Not Included](https://store.steampowered.com/app/457140/), each in its own folder with its own README.
 
-- [Honest Instant Build](honest-instant-build/README.md): build orders finish the moment you place them, but still cost their full materials. No sandbox, no debug mode, achievements stay on.
-- [Honest Instant Deconstruction](honest-instant-deconstruction/README.md): deconstruct orders finish the moment you give them, and drop exactly what your duplicants would have dropped. No sandbox, no debug mode, achievements stay on.
-- [Self-sealing Airlocks (Continued)](self-sealing-airlocks/README.md): doors on Auto or Locked stay airtight while duplicants walk through. A continuation of chromiumboy's original, rebuilt for the current game.
+## The mods
 
-All three are tested by playing them in the real game before every release: an automated run loads real colonies, places orders, walks duplicants through doors, and checks the results, with each mod also switched off to prove the checks can tell the difference.
+- [Honest Instant Build](honest-instant-build/README.md): build orders finish instantly, without sandbox mode, and still cost their full materials.
+- [Honest Instant Deconstruction](honest-instant-deconstruction/README.md): deconstruct orders finish instantly, without sandbox mode.
+- [Self-sealing Airlocks (Continued)](self-sealing-airlocks/README.md): doors on Auto or Locked stay airtight, even while a duplicant walks through.
+
+## How they are tested
+
+All three are tested by playing them in the real game before every release: an automated run loads real colonies, places orders, walks duplicants through doors, and checks the results, with each mod also switched off to prove the checks can tell the difference. Every release is security scanned: two antivirus engines on the files that ship, and CodeQL on this source.
 
 ## Building
 
@@ -22,6 +26,10 @@ UnityEngine.CoreModule.dll
 
 Then copy each mod's `bin/Release/net48/` DLL, `mod.yaml` and `mod_info.yaml` into a folder under the game's `mods/Dev/`.
 
-## Licences
+## How to get support
 
-Each mod carries its own licence: Self-sealing Airlocks is GPL-3.0 (inherited from the original); Honest Instant Build's and Honest Instant Deconstruction's are in their folders.
+Please raise an issue on [GitHub](https://github.com/netstrider-canada/oni-mods/issues) if you have any problems and I'll take a look.
+
+## Credits and licensing
+
+Each mod carries its own licence in its folder: Self-sealing Airlocks is GPL-3.0, inherited from the original (its README credits the authors it builds on); Honest Instant Build and Honest Instant Deconstruction are MIT.
