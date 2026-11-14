@@ -4,8 +4,8 @@ Three mods for [Oxygen Not Included](https://store.steampowered.com/app/457140/)
 
 ## The mods
 
-- [Honest Instant Build](honest-instant-build/README.md): build orders finish instantly, without sandbox mode, and still cost their full materials.
-- [Honest Instant Deconstruction](honest-instant-deconstruction/README.md): deconstruct orders finish instantly, without sandbox mode.
+- [Honest Instant Build](honest-instant-build/README.md): build orders complete instantly, without sandbox mode, and still cost their full materials.
+- [Honest Instant Deconstruction](honest-instant-deconstruction/README.md): deconstruct orders finish instantly, without sandbox mode, for a faster pace of play.
 - [Self-sealing Airlocks (Continued)](self-sealing-airlocks/README.md): doors on Auto or Locked stay airtight, even while a duplicant walks through.
 
 ## How they are tested

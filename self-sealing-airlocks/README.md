@@ -41,8 +41,8 @@ Please raise an issue on [GitHub](https://github.com/netstrider-canada/oni-mods/
 
 ## Other mods of mine
 
-- [Honest Instant Build](../honest-instant-build/README.md): build orders finish instantly, without sandbox mode, and still cost their full materials.
-- [Honest Instant Deconstruction](../honest-instant-deconstruction/README.md): deconstruct orders finish instantly, without sandbox mode.
+- [Honest Instant Build](../honest-instant-build/README.md): build orders complete instantly, without sandbox mode, and still cost their full materials.
+- [Honest Instant Deconstruction](../honest-instant-deconstruction/README.md): deconstruct orders finish instantly, without sandbox mode, for a faster pace of play.
 
 ## Credits and licensing
 

@@ -37,7 +37,7 @@ Please raise an issue on [GitHub](https://github.com/netstrider-canada/oni-mods/
 
 ## Other mods of mine
 
-- [Honest Instant Build](../honest-instant-build/README.md): build orders finish instantly, without sandbox mode, and still cost their full materials.
+- [Honest Instant Build](../honest-instant-build/README.md): build orders complete instantly, without sandbox mode, and still cost their full materials.
 - [Self-sealing Airlocks (Continued)](../self-sealing-airlocks/README.md): doors on Auto or Locked stay airtight, even while a duplicant walks through.
 
 ## Credits and licensing
