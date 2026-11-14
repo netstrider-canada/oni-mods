@@ -224,11 +224,9 @@ namespace HonestInstantBuild
                 if (!Grid.IsValidCell(s.Cell)) return;
                 GameObject swap = s.Def.ReplacementLayer != ObjectLayer.NumLayers ? Grid.Objects[s.Cell, (int)s.Def.ReplacementLayer] : null;
                 GameObject tile = Grid.Objects[s.Cell, (int)s.Def.TileLayer];
-                bool ours = (swap != null && swap == s.Order) || (tile != null && tile == s.Order);
-                bool otherOrder = !ours && ((swap != null && swap.GetComponent<Constructable>() != null)
-                                     || (tile != null && tile.GetComponent<Constructable>() != null));
+                bool ours = IsOrder(swap, s.Order) || IsOrder(tile, s.Order);
                 // A new order placed on the cell owns its own picture; never erase that one.
-                if (otherOrder) return;
+                if (!ours && (IsAnyOrder(swap) || IsAnyOrder(tile))) return;
                 BuildTool tool = BuildTool.Instance;
                 bool cursorHere = tool != null && PlayerController.Instance != null
                                   && PlayerController.Instance.ActiveTool == tool && ToolLastCell(tool) == s.Cell;
@@ -252,5 +250,11 @@ namespace HonestInstantBuild
                 Debug.LogWarning($"{Mod.LogPrefix} clearing the blueprint picture at cell {s.Cell} failed: {ex}");
             }
         }
+
+        /// <summary>True when the object on a cell's layer is the given order (Unity's null check, so a destroyed object is not).</summary>
+        private static bool IsOrder(GameObject onCell, GameObject order) => onCell != null && onCell == order;
+
+        /// <summary>True when the object on a cell's layer is a build order still under construction.</summary>
+        private static bool IsAnyOrder(GameObject onCell) => onCell != null && onCell.GetComponent<Constructable>() != null;
     }
 }
