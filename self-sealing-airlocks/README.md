@@ -1,5 +1,7 @@
 # Self-sealing Airlocks (Continued)
 
+Install: [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3839123854) | [GitHub Releases](https://github.com/netstrider-canada/oni-mods/releases)
+
 Doors set to **Auto** or **Locked** stay airtight: gas and liquid cannot pass, even while a duplicant walks through. Doors set to **Open** let gas and liquid through as normal. Every door except the Pneumatic Door is covered.
 
 This continues Self-sealing Airlocks, whose published copies stopped working with the 2026 game updates.
