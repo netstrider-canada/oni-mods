@@ -129,16 +129,32 @@ namespace SelfSealingAirlocks
     // cell, and that flag is stored in the save. Vanilla never sets or clears
     // it on doors, so clear it when a door loads; otherwise doors set to "Open"
     // (and cells of later-deconstructed doors) would keep blocking gas.
+    //
+    // It also fixes a game bug (Klei "Known Issue" r61352, 2026-09-01): a door
+    // saved on Open can never go back to Auto after loading. Door.OnSpawn calls
+    // Open() for a door on Open, which counts one duplicant in the doorway
+    // (openCount), and nothing ever takes that count back off: a mode change
+    // adds one and removes one. On Auto the door then waits forever for that
+    // phantom duplicant to leave, so it stands open and gas and liquid flow.
+    // No duplicant is in a doorway at the moment a save loads (one walking
+    // through opens the door again afterwards), so the count is cleared here.
     [HarmonyPatch(typeof(Door), "OnSpawn")]
     internal static class SelfSealingAirlocks_Door_OnSpawn
     {
         private const byte GasImpermeable = 1; // Sim.Cell.Properties.GasImpermeable
+
+        private static readonly AccessTools.FieldRef<Door, int> OpenCount =
+            AccessTools.FieldRefAccess<Door, int>("openCount");
 
         private static void Postfix(Door __instance)
         {
             foreach (int cell in __instance.building.PlacementCells)
             {
                 SimMessages.ClearCellProperties(cell, GasImpermeable);
+            }
+            if (__instance.CurrentState == Door.ControlState.Opened)
+            {
+                OpenCount(__instance) = 0;
             }
         }
     }
