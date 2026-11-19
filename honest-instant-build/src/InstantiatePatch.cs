@@ -38,6 +38,10 @@ namespace HonestInstantBuild
             public IList<Tag> Elements;
             public bool Affordable;
             public int Waits;
+            /// <summary>True when the order is finished after Honest Instant Dig digs its cells.</summary>
+            public bool ViaDig;
+            /// <summary>The cells the game digs for this order (empty when none).</summary>
+            public List<int> DigCells;
         }
 
         /// <summary>Frames to wait for an order's own OnSpawn before leaving it to duplicants.</summary>
@@ -67,12 +71,59 @@ namespace HonestInstantBuild
                 int cell = Grid.PosToCell(pos);
                 if (!Grid.IsValidCell(cell)) return;
 
-                // Decision 3A: digging stays a duplicant job. An order over solid ground waits
-                // for its dig and then proceeds as a normal build.
-                if (NeedsDigging(__instance, __result.GetComponent<Constructable>(), cell, orientation))
+                // Nothing a duplicant could not do: an asteroid with no living duplicant on it (nor in a
+                // rocket landed there) keeps the whole order a normal one, nothing paid, nothing dug
+                // (decided 2026-11-19, after a play check dug the surface of an empty asteroid).
+                if (!DigRules.AnyDuplicantOn(Grid.WorldIdx[cell]))
                 {
-                    Debug.Log($"{Mod.LogPrefix} {__instance.PrefabID} at cell {cell}: skipped, needs digging first.");
+                    Debug.Log($"{Mod.LogPrefix} {__instance.PrefabID} at cell {cell}: left as a normal order: no living duplicant on this asteroid.");
+                    __result.GetComponent<KPrefabID>()?.AddTag(DeferredFinish.LeftNormalTag);
                     return;
+                }
+
+                // A building the game lets only a skilled duplicant build (the conveyor family needs the
+                // Mechatronics Engineer's ConveyorBuild, Steam Turbines and Heavi-Watt wires the Power
+                // Technician's CanPowerTinker; Constructable.requiredSkillPerk, enforced on the Build chore
+                // by WorkChore) is instant only when a living duplicant on this asteroid holds that skill.
+                // Otherwise the whole order stays a normal one: nothing paid, nothing dug (v0.2.0, decided 2026-11-18,
+                // the same rule as digging).
+                Constructable order = __result.GetComponent<Constructable>();
+                string perk = order != null ? order.requiredSkillPerk : null;
+                if (!string.IsNullOrEmpty(perk) && !MinionResume.AnyMinionHasPerk(perk, Grid.WorldIdx[cell]))
+                {
+                    Debug.Log($"{Mod.LogPrefix} {__instance.PrefabID} at cell {cell}: left as a normal order: needs {perk} on this asteroid.");
+                    __result.GetComponent<KPrefabID>()?.AddTag(DeferredFinish.LeftNormalTag);
+                    return;
+                }
+
+                // Decision 3A: digging stays a duplicant job. An order over solid ground waits
+                // for its dig and then proceeds as a normal build - unless Honest Instant Dig is
+                // loaded too (v0.2), which digs it at once; then the order is paid now and finished
+                // the moment its digs are done (DeferredFinish).
+                List<int> digCells = DigCells(__instance, __result.GetComponent<Constructable>(), cell, orientation);
+                bool viaDig = false;
+                if (digCells == null || digCells.Count > 0)
+                {
+                    if (digCells == null || !DeferredFinish.DigModLoaded())
+                    {
+                        Debug.Log($"{Mod.LogPrefix} {__instance.PrefabID} at cell {cell}: skipped, needs digging first.");
+                        return;
+                    }
+                    // Decision 3-i A: every cell must be one an honest duplicant on this asteroid
+                    // could dig now, or the whole order stays a normal duplicant order.
+                    foreach (int c in digCells)
+                    {
+                        string reason = DeferredFinish.WhyNotInstantlyDiggable(c, __instance);
+                        if (reason != null)
+                        {
+                            Debug.Log($"{Mod.LogPrefix} {__instance.PrefabID} at cell {cell}: left as a normal order: cell {c} {reason}.");
+                            // Tell Honest Instant Dig, by a plain tag (no reference either way), to
+                            // leave this order's digs to duplicants too: nothing paid, nothing dug.
+                            __result.GetComponent<KPrefabID>()?.AddTag(DeferredFinish.LeftNormalTag);
+                            return;
+                        }
+                    }
+                    viaDig = true;
                 }
 
                 WorldContainer world = ClusterManager.Instance.GetWorld(Grid.WorldIdx[cell]);
@@ -86,7 +137,11 @@ namespace HonestInstantBuild
                     Cell = cell,
                     Elements = new List<Tag>(selected_elements),
                     Affordable = __instance.MaterialsAvailable(selected_elements, world),
+                    ViaDig = viaDig,
+                    DigCells = digCells,
                 };
+                // An order this mod will refuse must not have its ground dug first by Honest Instant Dig.
+                if (viaDig && !pending.Affordable) __result.GetComponent<KPrefabID>()?.AddTag(DeferredFinish.LeftNormalTag);
                 UIScheduler.Instance.Schedule("HonestInstantBuild", 0f, Act, pending);
             }
             catch (Exception ex)
@@ -96,28 +151,31 @@ namespace HonestInstantBuild
         }
 
         /// <summary>
-        /// True when the game would place a dig for this order - the same rule as
-        /// Constructable.PlaceDiggables/IsCellDigRequired. A tile swap never digs, and a cell
-        /// that is solid only because a built tile is there (Grid.Foundation) is not a dig:
-        /// that is how wires and pipes run through tiles and how one tile replaces another.
+        /// The order's cells the game will dig - the same rule as Constructable.PlaceDiggables and
+        /// IsCellDigRequired. A tile swap never digs, and a cell that is solid only because a built
+        /// tile is there (Grid.Foundation) is not a dig: that is how wires and pipes run through tiles
+        /// and how one tile replaces another.
         /// </summary>
         /// <param name="def">The building being ordered.</param>
-        /// <param name="constructable">The new order (null is treated as needing a dig).</param>
+        /// <param name="constructable">The new order.</param>
         /// <param name="cell">The order's anchor cell.</param>
         /// <param name="orientation">Rotation chosen by the player.</param>
-        private static bool NeedsDigging(BuildingDef def, Constructable constructable, int cell, Orientation orientation)
+        /// <returns>The dig cells (empty when the order needs no dig), or null when the order needs a
+        /// dig that cannot be listed (no Constructable, or a footprint cell off the map).</returns>
+        private static List<int> DigCells(BuildingDef def, Constructable constructable, int cell, Orientation orientation)
         {
-            if (constructable == null) return true;
-            if (constructable.IsReplacementTile) return false;
+            var cells = new List<int>();
+            if (constructable == null) return null;
+            if (constructable.IsReplacementTile) return cells;
             foreach (CellOffset offset in def.PlacementOffsets)
             {
                 CellOffset rotated = Rotatable.GetRotatedCellOffset(offset, orientation);
-                if (!Grid.IsCellOffsetValid(cell, rotated)) return true;
+                if (!Grid.IsCellOffsetValid(cell, rotated)) return null;
                 int c = Grid.OffsetCell(cell, rotated);
-                if (def.ObjectLayer == ObjectLayer.Backwall && BackwallManager.HasBackwall(c)) return true;
-                if (Diggable.IsDiggable(c)) return true;
+                if ((def.ObjectLayer == ObjectLayer.Backwall && BackwallManager.HasBackwall(c)) || Diggable.IsDiggable(c))
+                    cells.Add(c);
             }
-            return false;
+            return cells;
         }
 
         /// <summary>
@@ -168,6 +226,15 @@ namespace HonestInstantBuild
                     return;
                 }
 
+                if (p.ViaDig)
+                {
+                    // Paid in full: hand the order to the game's own delivery-complete path, which
+                    // places its digs and clears the reservation; DeferredFinish builds it once the
+                    // digs are done.
+                    DeferredFinish.PayAndWait(constructable, p.Def, p.Cell, report, p.DigCells);
+                    return;
+                }
+
                 // The order's OnSpawn added its recipe to the world's MaterialNeeds ("reserved"),
                 // which the game only removes when the fetch list completes or the order is
                 // cancelled - neither happens on this path, so without this the reservation
@@ -181,14 +248,26 @@ namespace HonestInstantBuild
                 // the deduction. A null worker is what the game itself passes for sandbox uproots.
                 constructable.CompleteWork(null);
                 Debug.Log($"{Mod.LogPrefix} built {p.Def.PrefabID} at cell {p.Cell} using {report}.");
-                if (p.Def.IsTilePiece && p.Def.isKAnimTile && p.Def.BlockTileAtlas != null)
-                    UIScheduler.Instance.Schedule("HonestInstantBuild", 0.1f, SweepGhost,
-                        new Sweep { Def = p.Def, Cell = p.Cell, Order = p.Order, Until = Time.realtimeSinceStartup + 60f });
+                ScheduleGhostSweep(p.Def, p.Cell, p.Order);
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"{Mod.LogPrefix} finishing {p.Def?.PrefabID} at cell {p.Cell} failed, leaving the order to duplicants: {ex}");
             }
+        }
+
+        /// <summary>
+        /// After a finish, start the sweep that erases a stale blueprint picture, for the tiles that
+        /// draw one (kAnim tiles with a block atlas).
+        /// </summary>
+        /// <param name="def">The building just finished.</param>
+        /// <param name="cell">Its anchor cell.</param>
+        /// <param name="order">The order just finished.</param>
+        internal static void ScheduleGhostSweep(BuildingDef def, int cell, GameObject order)
+        {
+            if (def.IsTilePiece && def.isKAnimTile && def.BlockTileAtlas != null)
+                UIScheduler.Instance.Schedule("HonestInstantBuild", 0.1f, SweepGhost,
+                    new Sweep { Def = def, Cell = cell, Order = order, Until = Time.realtimeSinceStartup + 60f });
         }
 
         /// <summary>More layers of cursor preview than a drag can stack on one cell.</summary>

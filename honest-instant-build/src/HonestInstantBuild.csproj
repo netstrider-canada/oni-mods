@@ -18,7 +18,7 @@
     <LangVersion>9.0</LangVersion>
     <AssemblyName>HonestInstantBuild</AssemblyName>
     <RootNamespace>HonestInstantBuild</RootNamespace>
-    <Version>0.1.5</Version>
+    <Version>0.2.0</Version>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

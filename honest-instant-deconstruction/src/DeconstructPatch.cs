@@ -75,6 +75,14 @@ namespace HonestInstantDeconstruction
                     Debug.Log($"{Mod.LogPrefix} {id} at cell {cell}: left to the game, a replacement is pending.");
                     return true;
                 }
+                // Nothing a duplicant could not do: an asteroid with no living duplicant on it (nor in a
+                // rocket landed there) keeps the order a duplicant job (decided 2026-11-19). The reach is
+                // the asteroid and its child worlds, as MinionResume.AnyMinionHasPerk counts them.
+                if (Components.LiveMinionIdentities.GetWorldItems(Grid.WorldIdx[cell], true).Count == 0)
+                {
+                    Debug.Log($"{Mod.LogPrefix} {id} at cell {cell}: left to duplicants, no living duplicant on this asteroid.");
+                    return true;
+                }
                 // Read what will drop before the finish: the object is gone afterwards.
                 string drops = Drops(__instance);
                 CompleteNow(__instance, null);

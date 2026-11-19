@@ -29,7 +29,7 @@ Closing, temperature, insulation and falling sand stay with the game's own code.
 
 ## How it was tested
 
-Tested automatically by automated test scripts with many different saves, as well as played by myself first in my own games. Every release is play-tested by an automated run in the real game, on several real Spaced Out colonies and on the base game: doors stay sealed on Auto and Locked while a duplicant passes, open on Open (including with a duplicant in the doorway), seal again when set back to Auto, the Insulated Door keeps its insulation, the Pneumatic Door is unchanged, deconstruction frees the cells, and a duplicant changes a door's mode without error (proven in Spaced Out; in the small base-game test colony no duplicant took that job in the time given). The same checks run with the mod switched off show the game's own leaky doors, proving they can tell the difference. Every release is security scanned: two antivirus engines on the files that ship, and CodeQL on this source.
+Tested automatically by automated test scripts with many different saves, as well as played by myself first in my own games. Every release is play-tested by an automated run in the real game, on several real Spaced Out colonies and on the base game: doors stay sealed on Auto and Locked while a duplicant passes, open on Open (including with a duplicant in the doorway), seal again when set back to Auto, the Insulated Door keeps its insulation, the Pneumatic Door is unchanged, deconstruction frees the cells, and a duplicant changes a door's mode without error (proven in Spaced Out; in the small base-game test colony no duplicant took that job in the time given). The same checks run with the mod switched off show the game's own leaky doors, proving they can tell the difference. Every release is security and privacy scanned: two antivirus engines and a check for personal details on the files that ship, and CodeQL on this source. The results and file hashes are in each [release's notes](https://github.com/netstrider-canada/oni-mods/releases).
 
 ## Building
 
@@ -41,15 +41,16 @@ Please raise an issue on [GitHub](https://github.com/netstrider-canada/oni-mods/
 
 ## Other mods of mine
 
-- [Honest Instant Build](../honest-instant-build/README.md): build orders complete instantly, without sandbox mode, and still cost their full materials.
-- [Honest Instant Deconstruction](../honest-instant-deconstruction/README.md): deconstruct orders finish instantly, without sandbox mode, for a faster pace of play.
+- [Honest Instant Build](../honest-instant-build/README.md): build orders complete instantly, without sandbox mode, but with some honest restrictions. Speeds up gameplay at the cost of some game challenge.
+- [Honest Instant Deconstruction](../honest-instant-deconstruction/README.md): deconstruct orders finish instantly, without sandbox mode, but with some honest restrictions. Speeds up gameplay at the cost of some game challenge.
+- [Honest Instant Dig](../honest-instant-dig/README.md): dig orders finish instantly, without sandbox mode, but with some honest restrictions. Speeds up gameplay at the cost of some game challenge.
 
 ## Credits and licensing
 
 Previous versions of this mod have not been kept up to date and so I have continued it; their published copies stopped working with the 2026 game updates.
 
 - **chromiumboy** wrote the original [Self-sealing Airlocks](https://github.com/chromiumboy/OxygenNotIncludedMods/tree/master/SelfSealingAirlocks).
-- **LoneMarauder** ported it to Harmony 2 as [Self-sealing Airlocks Revived](https://github.com/LoneMarauder/ONI-Mods/tree/main/SelfSealingAirlocksRevived); **data54** contributed fixes.
+- **LoneMarauder** (gbdickinson on Steam) ported it to Harmony 2 as [Self-sealing Airlocks Revived](https://github.com/LoneMarauder/ONI-Mods/tree/main/SelfSealingAirlocksRevived); **data54** contributed fixes.
 - **yohan-id** rewrote it as [SelfSealingAirlocksRevivedV2](https://github.com/yohan-id/SelfSealingAirlocksRevivedV2), the code this copy starts from.
 
 GPL-3.0, as the original: see [LICENSE](LICENSE).
