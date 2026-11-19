@@ -1,5 +1,7 @@
 # Honest Instant Dig
 
+Install: [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3842568184) | [GitHub Releases](https://github.com/netstrider-canada/oni-mods/releases)
+
 Dig orders finish instantly, without sandbox mode, but with some honest restrictions. Speeds up gameplay at the cost of some game challenge.
 
 ## What this mod does
